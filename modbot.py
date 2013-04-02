@@ -9,7 +9,7 @@ PASSWORD = 'askwomenmodbot'
 r = praw.Reddit(user_agent='TubesBot')
 r.login(username,PASSWORD)
 #already_done = []
-keywords = ['bitch', 'slut', 'whore', 'cunt', 'nigger', 'dyke', 'faggot']
+keywords = ['bitch', 'slut', 'whore', 'cunt', 'nigger', 'dyke', 'faggot', 'dick']
 
 _hits = None
 filename = 'ident_cache.txt'
@@ -55,12 +55,12 @@ def alert_comment_slurs(subreddit):
     comments = reddit_to_check.get_comments()
     for x in comments:
         bool_test = any(string in x.body.lower() for string in keywords)
-        exception = any('"'+string+'"' in x.body.lower() for string in keywords)
-        if not check_hits(x.id, filename) and bool_test and not exception:
+        #exception = any('"'+string+'"' in x.body.lower() for string in keywords)
+        if not check_hits(x.id) and bool_test:
            #print str(x.body) + " " + str(x.author)
             msg = 'This comment: ' + str(x.body) + ' contains inappropriate language, link here: ' + str(x.permalink) + ' This comment was made by: ' + str(x.author)
             print msg
-            if not check_hits(x.id, filename):
+            if not check_hits(x.id):
                 #r.send_message('/r/'+ subreddit, 'inappropriate comment detected', msg)
                 x.report()
                 _hits.append(x.id)
@@ -72,17 +72,17 @@ def post_is_question(subreddit):
     for submission in reddit_to_check.get_new(limit=10):
         title = submission.title.lower()
         has_question =  any(string in title for string in question_words)
-        if not check_hits(submission.id, filename) and not has_question and not '?' in submission.title:
+        if not check_hits(submission.id) and not has_question and not '?' in submission.title:
             msg = 'This post: ' + str(submission.permalink) + ' was not a question, and was posted by: ' + str(submission.author)
             print msg
-            if not check_hits(submission.id, filename):
+            if not check_hits(submission.id):
                 #r.send_message('/r/'+subreddit, 'improper post detected', msg)
                 submission.report()
                 _hits.append(submission.id)
-        elif not check_hits(submission.id, filename) and not '?' in submission.title and 'http://www.reddit.com' in submission.selftext.lower():
+        elif not check_hits(submission.id) and not '?' in submission.title and 'http://www.reddit.com' in submission.selftext.lower():
             msg = 'This post : ' + str(submission.permalink) + ' contained a link in the body, and was posted by: ' + str(submission.author)
             print msg
-            if not check_hits(submission.id, filename):
+            if not check_hits(submission.id):
                 submission.report()
                 _hits.append(submission.id)
 
@@ -92,12 +92,12 @@ def post_is_inappropriate(subreddit):
     comments = reddit_to_check.get_new(limit=10)
     for x in comments:
         test = any(string in x.title.lower() + x.selftext.lower() for string in keywords)
-        exception = any('"'+string+'"' in x.selftext.lower() + x.title.lower() for string in keywords)
+        #exception = any('"'+string+'"' in x.selftext.lower() + x.title.lower() for string in keywords)
         #title_exception = any('"'+string+'"' in x.title.lower() for string in keywords)
-        if not check_hits(x.id, filename) and test and not exception: #and not body_exception and not title_exception:
+        if not check_hits(x.id) and test: #and not body_exception and not title_exception:
             msg = 'This post: ' + str(x.permalink) + ' contains inappropriate language.  This post was made by: ' + str(x.author)
             print msg
-            if not check_hits(submission.id, filename):
+            if not check_hits(submission.id):
                 #r.send_message('/r/'+subreddit, 'inappropriate post detected', msg)
                 x.report()
                 _hits.append(x.id)
@@ -110,20 +110,23 @@ def PUA_posts(subreddit):
         body = x.selftext.lower()
         PUA_keywords = ['PUA', 'seddit', 'r/seduction', 'pick up artists']
         has_PUA = any(string in body for string in PUA_keywords) or any(string in title for string in PUA_keywords)
-        if not check_hits(x.id, filename) and has_PUA:
+        if not check_hits(x.id) and has_PUA:
             msg = 'Hey, this is your friendly neighborhood mod bot.  Just wanted to you to know that a thread containing content related to PUA has popped up, and might need some non-bot intervention.  The link is here: ' + str(x.permalink) + '\n\n Have a nice day!'
             r.send_message('RampagingKoala', 'PUA thread detected', msg)
             _hits.append(x.id)
 
 counter = 0;
 while True:
-    print 'beginning check ' + str(counter)
-    alert_comment_slurs('howtopickupgirls')
-    post_is_inappropriate('howtopickupgirls')
-    post_is_question('howtopickupgirls')
-    PUA_posts('howtopickupgirls')
+    print 'beginning check ' + str(counter) + ' at: ' + str(time.ctime())
+    alert_comment_slurs('askwomen')
+    post_is_inappropriate('askwomen')
+    post_is_question('askwomen')
+    PUA_posts('askwomen')
     write_hits(filename)
-    if counter % 24 == 0:
+    print 'check ' + str(counter) + ' completed!'
+    time.sleep(1800)
+    counter = counter + 1
+    '''if counter % 24 == 0:
         #sends a daily mod bot update containing all the links it found
         msg = 'Hi, this is your friendly neighborhood mod bot.  This is an update on what I found.\n\n'
         for x in _hits:
@@ -135,6 +138,7 @@ while True:
         _hits = []
     #TODO modify loop to check more often during peak hours, and increment the counter by decimals during that time
     # for example, during peak hours, check once every 30 minutes, and increment by .5
-    time.sleep(10)
-    counter = counter + 1
+	print 'check ' + str(counter) + ' completed!'
+	time.sleep(3600)
+    counter = counter + 1'''
 
