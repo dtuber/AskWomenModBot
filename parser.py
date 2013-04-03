@@ -55,11 +55,11 @@ def slur_detect(text_list):
 	if none were detected.'''
 	resultant = []
 	for sentence in text_list:
-		match = re.search('(bitchy?|whore|slut|dickhead|dick' + \
-			'|fag|cunt) ', sentence)
+		match = re.search('(bitchy?|whore|slut|dick' + \
+			'|fag|cunt)', sentence)
 		if match:
 			word = match.group(1)
-			if exclusion_criteria(sentence, word): continue
+			if not exclusion_criteria(sentence, word): continue
 			resultant.append(match.group(1))
 	if resultant != []: return resultant
 	else: return None
