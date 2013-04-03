@@ -97,7 +97,7 @@ def post_is_inappropriate(subreddit):
         if not check_hits(x.id) and test: #and not body_exception and not title_exception:
             msg = 'This post: ' + str(x.permalink) + ' contains inappropriate language.  This post was made by: ' + str(x.author)
             print msg
-            if not check_hits(submission.id):
+            if not check_hits(x.id):
                 #r.send_message('/r/'+subreddit, 'inappropriate post detected', msg)
                 x.report()
                 _hits.append(x.id)
