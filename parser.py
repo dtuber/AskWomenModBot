@@ -31,7 +31,7 @@ def exclusion_criteria(sentence, word):
 	appropriate context. Returns True if the slur is being used
 	inappropriately.'''
 	if word.find("bitch") != -1:
-		if re.search('"[^"]{0,30}bitch', sentence):
+		if re.search('"[^"]{0,20}bitch', sentence):
 			# if the above expression matches, it was probably
 			# being used within a quote
 			return False
@@ -41,19 +41,21 @@ def exclusion_criteria(sentence, word):
 		if re.search('slut sham(e|ing)', sentence):
 			return False
 	if word.find("dick") != -1:
-		if re.search('(my|his|her|your) dick', sentence):
+		if re.search('(^|\W)(my|his|her|your) dick', sentence):
 			return False
 	if word.find("cunt") != -1:
-		if re.search('(my|his|her|your) cunt', sentence):
+		if re.search('(^|\W)(my|his|her|your) cunt', sentence):
 			return False
 	return True
 
-def slur_detect(text_list):
-	'''Looking at the sentences in text_list, apply regular expressions
+def slur_detect(text):
+	'''Looking at the sentences in text (splitting them
+	with the breakdown function first), apply regular expressions
 	to look for gendered slurs (heuristically exclude probable non-slurs)
 	and return them as a list if there were any detected; or, return None
 	if none were detected.'''
 	resultant = []
+	text_list = breakdown(text)
 	for sentence in text_list:
 		match = re.search('(bitchy?|whore|slut|dick' + \
 			'|fag|cunt)', sentence)
