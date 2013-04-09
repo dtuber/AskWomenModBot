@@ -4,6 +4,9 @@ import time
 from pprint import pprint
 import os
 
+# importing local modules
+import parser
+
 username = 'RachelTyrell'
 PASSWORD = 'askwomenmodbot'
 r = praw.Reddit(user_agent='TubesBot')
@@ -47,6 +50,7 @@ def check_hits(ident, filename=None):
 check_hits(None, filename)
 
 def alert_comment_slurs(subreddit):
+    global _hits
     #test to see if any recent comments have issues
     #TODO split comment into sentences, use regex to detect if a word is being used in context
     #/(is|was) a? dick/
@@ -54,16 +58,18 @@ def alert_comment_slurs(subreddit):
     reddit_to_check = r.get_subreddit(subreddit)
     comments = reddit_to_check.get_comments()
     for x in comments:
-        bool_test = any(string in x.body.lower() for string in keywords)
+	# already seen this comment? skip it then
+	if check_hits(x.id): continue
+	resultant = parser.slur_detect(unicode(x.body))
+	if resultant is not None:
+	    msg = 'This comment: ' + unicode(x.permalink) + \
+	        ' with body: ' + unicode(x.body) + \
+	        "\nmade by:" + unicode(x.author) + \
+	        'contains inappropriate language, keywords: ' + str(resultant)
+	    print msg
+	    x.report()
+	    _hits.append(x.id)
         #exception = any('"'+string+'"' in x.body.lower() for string in keywords)
-        if not check_hits(x.id) and bool_test:
-           #print str(x.body) + " " + str(x.author)
-            msg = 'This comment: ' + str(x.body) + ' contains inappropriate language, link here: ' + str(x.permalink) + ' This comment was made by: ' + str(x.author)
-            print msg
-            if not check_hits(x.id):
-                #r.send_message('/r/'+ subreddit, 'inappropriate comment detected', msg)
-                x.report()
-                _hits.append(x.id)
 
 def post_is_question(subreddit):
     #checks to see if posts are questions
@@ -141,3 +147,5 @@ while True:
 	print 'check ' + str(counter) + ' completed!'
 	time.sleep(3600)
     counter = counter + 1'''
+
+# vim: set expandtab:ts=4
